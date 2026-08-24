@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
+using SSO.Requests;
+using SSO.Responses;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace SSO.Controllers;
 
@@ -8,24 +11,41 @@ public class ClientController(IOpenIddictApplicationManager applicationManager) 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] CreateClientRequest request)
     {
-        if (applicationManager.FindByClientIdAsync(request.Id) is not null)
-        {
-            return Conflict("Cliente ja existe");
-        }
-        var clientId = new Guid().ToString();
-        var clientSecret = System.Security.Cryptography.RandomNumberGenerator.GetString(
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_", 43);
+        var clientId = Guid.NewGuid().ToString();
+        var clientSecret = Guid.NewGuid().ToString();
 
         var descriptor = new OpenIddictApplicationDescriptor
         {
             ClientId = clientId,
             ClientSecret = clientSecret,
-            RedirectUris = ,
             DisplayName = request.DisplayName,
-            Permissions = 
+            Permissions =
+            {
+                Permissions.Endpoints.Authorization,
+                Permissions.Endpoints.Token,
+                Permissions.GrantTypes.AuthorizationCode,
+                Permissions.ResponseTypes.Code,
+                Permissions.Scopes.Email,
+                Permissions.Scopes.Profile,
+            },
+            ApplicationType = ApplicationTypes.Web
         };
-        await applicationManager.CreateAsync(
-            descriptor
-        );
+
+        foreach (var uri in request.RedirectUris)
+        {
+            descriptor.RedirectUris.Add(
+                uri
+            );
+        }
+
+        await applicationManager.CreateAsync(descriptor);
+
+        return Created("", new CreateClientResponse(clientId, clientSecret));
+    }
+
+    [HttpGet]
+    public IActionResult Redirect()
+    {
+        return Content("Home, Bem vindo Erick");
     }
 }
