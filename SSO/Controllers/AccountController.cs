@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SSO.Controllers;
 
-public class AccountsController : ApiController
+public class AccountController : Controller
 {
     [HttpGet("/login")]
-    public IActionResult Login(string? retunrnUrl = null)
+    public IActionResult Login()
     {
-        return Content($"cheguei no login {retunrnUrl}");
+        return Content($"cheguei no login");
     }
 
 }

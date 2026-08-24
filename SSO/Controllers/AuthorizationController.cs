@@ -8,10 +8,10 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace SSO.Controllers;
 
-public class AuthorizationController : ApiController
+public class AuthorizationController : Controller
 {
-    [HttpPost("~/connect/token")]
-    public async Task<IActionResult> Exchange() { }
+    /* [HttpPost("~/connect/token")]
+    public async Task<IActionResult> Exchange() { } */
 
     [HttpGet("~/connect/authorize")]
     [HttpPost("~/connect/authorize")]
