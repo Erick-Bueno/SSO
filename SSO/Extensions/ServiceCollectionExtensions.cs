@@ -13,7 +13,7 @@ public static class ServiceCollectionExtensions
         {
             services.AddDbContext<SSODbContext>(options =>
             {
-                options.UseNpgsql(configuration.GetConnectionString("postgres"));
+                options.UseMongoDB(configuration.GetConnectionString("mongodb"));
                 options.UseOpenIddict();
             });
             return services;
@@ -43,16 +43,19 @@ public static class ServiceCollectionExtensions
                 .AddServer(options =>
                 {
                     //vai assinar o access token com chave privada e vai encriptografar
-                    options.AddDevelopmentEncryptionCertificate();
-                    options.AddDevelopmentSigningCertificate(); //provavelmente remover
+                    options.AddDevelopmentEncryptionCertificate()
+                           .AddDevelopmentSigningCertificate();
 
                     //habilita as rotas de token e authorize
-                    options.SetTokenEndpointUris("connect/token");
-                    options.SetAuthorizationEndpointUris("connect/authorize");
+                    options.SetTokenEndpointUris("connect/token")
+                           .SetAuthorizationEndpointUris("connect/authorize")
+                           .SetUserInfoEndpointUris("connect/userinfo");
+
                     //habilita refresh token
                     options.AllowRefreshTokenFlow();
                     //isso aki adiciona pkce no flow de authorize
-                    options.AllowAuthorizationCodeFlow().RequireProofKeyForCodeExchange();
+                    options.AllowAuthorizationCodeFlow()
+                           .RequireProofKeyForCodeExchange();
                     //permite com que possamos customizar a logica que ocorre nos endpoints /connect/token /authorize/token
                     options
                         .UseAspNetCore() //integra o openiddict ao pipeline http do aspnetcore
