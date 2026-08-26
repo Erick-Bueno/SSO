@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SSO.Controllers;
 
-public class AccountController : Controller
+public class AccountController : ApiController
 {
     [HttpGet("/login")]
     public IActionResult Login()
