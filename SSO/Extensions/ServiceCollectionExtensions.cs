@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using SSO.Context;
 
 namespace SSO.Extensions;
@@ -13,9 +13,17 @@ public static class ServiceCollectionExtensions
         {
             services.AddDbContext<SSODbContext>(options =>
             {
-                options.UseMongoDB(configuration.GetConnectionString("mongodb"));
+                options.UseNpgsql(configuration.GetConnectionString("postgres"));
                 options.UseOpenIddict();
             });
+            return services;
+        }
+
+        public IServiceCollection AddSsoIdentity()
+        {
+            services
+                .AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<SSODbContext>();
             return services;
         }
 
@@ -28,7 +36,7 @@ public static class ServiceCollectionExtensions
                     options.LoginPath = "/login";
                     options.Cookie.Name = "sso.session";
                 });
-                return services;
+            return services;
         }
 
         public IServiceCollection AddSSOAuthorization()
@@ -43,19 +51,20 @@ public static class ServiceCollectionExtensions
                 .AddServer(options =>
                 {
                     //vai assinar o access token com chave privada e vai encriptografar
-                    options.AddDevelopmentEncryptionCertificate()
-                           .AddDevelopmentSigningCertificate();
+                    options
+                        .AddDevelopmentEncryptionCertificate()
+                        .AddDevelopmentSigningCertificate();
 
                     //habilita as rotas de token e authorize
-                    options.SetTokenEndpointUris("connect/token")
-                           .SetAuthorizationEndpointUris("connect/authorize")
-                           .SetUserInfoEndpointUris("connect/userinfo");
+                    options
+                        .SetTokenEndpointUris("connect/token")
+                        .SetAuthorizationEndpointUris("connect/authorize")
+                        .SetUserInfoEndpointUris("connect/userinfo");
 
                     //habilita refresh token
                     options.AllowRefreshTokenFlow();
                     //isso aki adiciona pkce no flow de authorize
-                    options.AllowAuthorizationCodeFlow()
-                           .RequireProofKeyForCodeExchange();
+                    options.AllowAuthorizationCodeFlow().RequireProofKeyForCodeExchange();
                     //permite com que possamos customizar a logica que ocorre nos endpoints /connect/token /authorize/token
                     options
                         .UseAspNetCore() //integra o openiddict ao pipeline http do aspnetcore
